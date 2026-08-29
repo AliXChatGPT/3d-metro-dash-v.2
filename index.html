@@ -1,0 +1,2038 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#111827">
+<link rel="manifest" href="./manifest.json">
+<title>Metro-dash-3d-V.4</title>
+<style>
+*{
+  box-sizing:border-box;
+  -webkit-tap-highlight-color:transparent;
+}
+html,body{
+  margin:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:#080b12;
+  font-family:Arial,sans-serif;
+  touch-action:none;
+  user-select:none;
+}
+button{
+  font:inherit;
+}
+/* =====================================================
+   OYUN
+===================================================== */
+#game{
+  --sky1:#101a2d;
+  --sky2:#34536f;
+  --sky3:#0b1118;
+  --road1:#363c46;
+  --road2:#252b34;
+  --edge:#626d7b;
+  --lane:rgba(240,245,255,.30);
+  --danger1:#ff5968;
+  --danger2:#97182b;
+  --jump1:#4bd5ff;
+  --jump2:#0876c8;
+  --coin1:#fff58b;
+  --coin2:#e2a000;
+  --shirt1:#63a2ff;
+  --shirt2:#2453bc;
+  position:relative;
+  width:100vw;
+  height:100vh;
+  overflow:hidden;
+  background:#080c13;
+}
+/* =====================================================
+   MENÜ
+===================================================== */
+#menu{
+  position:absolute;
+  inset:0;
+  z-index:500;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  background:
+    radial-gradient(
+      circle at 50% 24%,
+      rgba(80,160,255,.18),
+      transparent 28%
+    ),
+    linear-gradient(
+      var(--sky1),
+      var(--sky2) 58%,
+      var(--sky3)
+    );
+}
+.logo{
+  text-align:center;
+  color:white;
+  text-shadow:
+    0 4px 0 rgba(0,0,0,.25),
+    0 12px 30px rgba(0,0,0,.35);
+}
+.logoSmall{
+  font-size:17px;
+  font-weight:bold;
+  letter-spacing:7px;
+  opacity:.8;
+}
+.logoBig{
+  margin-top:6px;
+  font-size:57px;
+  line-height:.95;
+  font-weight:900;
+  letter-spacing:-3px;
+}
+.logoVer{
+  display:inline-block;
+  margin-top:12px;
+  padding:6px 12px;
+  border:1px solid rgba(255,255,255,.2);
+  border-radius:999px;
+  background:rgba(255,255,255,.08);
+  font-size:13px;
+  letter-spacing:4px;
+}
+#menuButtons{
+  width:min(300px,82vw);
+  margin-top:32px;
+}
+.menuBtn{
+  width:100%;
+  height:55px;
+  margin:6px 0;
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:17px;
+  color:white;
+  background:rgba(8,15,27,.75);
+  font-weight:800;
+  font-size:16px;
+  box-shadow:
+    0 8px 20px rgba(0,0,0,.22);
+}
+.menuBtn.play{
+  background:
+    linear-gradient(
+      135deg,
+      #59b5ff,
+      #2768d9
+    );
+}
+.menuBtn:active{
+  transform:scale(.97);
+}
+.menuHint{
+  position:absolute;
+  bottom:18px;
+  font-size:12px;
+  opacity:.5;
+  color:white;
+}
+/* =====================================================
+   SAHNE
+===================================================== */
+#scene{
+  display:none;
+  position:absolute;
+  inset:0;
+  overflow:hidden;
+  /* Eski kamera */
+  perspective:700px;
+}
+#sky{
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(
+      circle at 50% 24%,
+      rgba(255,255,255,.15),
+      transparent 28%
+    ),
+    linear-gradient(
+      var(--sky1),
+      var(--sky2) 56%,
+      var(--sky3)
+    );
+  transition:background .7s ease;
+}
+/* =====================================================
+   UZAK ŞEHİR
+===================================================== */
+#city{
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:28%;
+  height:26%;
+  z-index:2;
+  opacity:.7;
+}
+.building{
+  position:absolute;
+  bottom:0;
+  background:
+    linear-gradient(
+      #1a2330,
+      #0c1219
+    );
+}
+.b1{left:0%;width:8%;height:48%}
+.b2{left:8%;width:9%;height:72%}
+.b3{left:17%;width:8%;height:55%}
+.b4{left:25%;width:12%;height:84%}
+.b5{left:37%;width:8%;height:61%}
+.b6{left:45%;width:12%;height:75%}
+.b7{left:57%;width:8%;height:52%}
+.b8{left:65%;width:13%;height:80%}
+.b9{left:78%;width:9%;height:58%}
+.b10{left:87%;width:13%;height:70%}
+.building::after{
+  content:"";
+  position:absolute;
+  inset:8px;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0 9px,
+      rgba(255,220,130,.34) 10px 13px,
+      transparent 14px 20px
+    );
+  opacity:.5;
+}
+/* =====================================================
+   DÜNYA
+===================================================== */
+#world{
+  position:absolute;
+  left:50%;
+  top:0;
+  width:min(700px,100vw);
+  height:100%;
+  transform:translateX(-50%);
+  overflow:hidden;
+  z-index:5;
+}
+/* =====================================================
+   YOL
+===================================================== */
+#road{
+  position:absolute;
+  left:50%;
+  bottom:-15vh;
+  width:600px;
+  max-width:100vw;
+  height:115vh;
+  transform:
+    translateX(-50%)
+    perspective(500px)
+    rotateX(55deg);
+  transform-origin:bottom;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      var(--road1) 0 38px,
+      var(--road2) 39px 76px
+    );
+  border-left:8px solid var(--edge);
+  border-right:8px solid var(--edge);
+  box-shadow:
+    inset 0 0 70px rgba(0,0,0,.28);
+  transition:
+    background .7s ease,
+    border-color .7s ease;
+}
+#road::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(0,0,0,.18),
+      transparent 20%,
+      transparent 80%,
+      rgba(0,0,0,.18)
+    );
+  pointer-events:none;
+}
+/* =====================================================
+   ŞERİTLER
+===================================================== */
+.laneLine{
+  position:absolute;
+  bottom:-10vh;
+  width:7px;
+  height:120vh;
+  background:var(--lane);
+  transition:
+    background .7s ease;
+}
+.laneLine.one{
+  left:33.333%;
+}
+.laneLine.two{
+  left:66.666%;
+}
+/* =====================================================
+   NESNELER
+===================================================== */
+#objects{
+  position:absolute;
+  inset:0;
+  z-index:25;
+  pointer-events:none;
+}
+.object{
+  position:absolute;
+  left:50%;
+  transform:
+    translateX(-50%)
+    scale(.35);
+  transform-origin:center bottom;
+  opacity:.25;
+  will-change:
+    bottom,
+    transform,
+    opacity;
+}
+/* =====================================================
+   KIRMIZI ENGEL
+===================================================== */
+.block{
+  width:68px;
+  height:70px;
+  border-radius:
+    10px 10px 6px 6px;
+  background:
+    linear-gradient(
+      145deg,
+      var(--danger1),
+      var(--danger2)
+    );
+  border:2px solid rgba(255,255,255,.11);
+  box-shadow:
+    inset 5px 5px 0 rgba(255,255,255,.16),
+    inset -7px -8px 0 rgba(0,0,0,.26),
+    0 9px 20px rgba(0,0,0,.36);
+}
+.block::before{
+  content:"";
+  position:absolute;
+  left:9px;
+  right:9px;
+  top:12px;
+  height:5px;
+  border-radius:5px;
+  background:rgba(255,255,255,.14);
+}
+/* =====================================================
+   MAVİ ZIPLAMA ENGELİ
+   UZUN + İNCE
+===================================================== */
+.jump{
+  width:76px;
+  height:9px;
+  border-radius:6px;
+  background:
+    linear-gradient(
+      135deg,
+      var(--jump1),
+      var(--jump2)
+    );
+  border:1px solid rgba(255,255,255,.25);
+  box-shadow:
+    inset 3px 2px 0 rgba(255,255,255,.23),
+    inset -3px -2px 0 rgba(0,0,0,.20),
+    0 5px 14px rgba(0,0,0,.3),
+    0 0 8px rgba(40,210,255,.3);
+}
+.jump::after{
+  content:"";
+  position:absolute;
+  left:9px;
+  right:9px;
+  top:3px;
+  height:1px;
+  background:rgba(255,255,255,.45);
+}
+/* =====================================================
+   EĞİLME ENGELİ
+===================================================== */
+.overhead{
+  width:94px;
+  height:13px;
+  border-radius:7px;
+  background:
+    linear-gradient(
+      145deg,
+      #e9eef3,
+      #7e8997
+    );
+  border:2px solid rgba(0,0,0,.22);
+  box-shadow:
+    inset 3px 3px 0 rgba(255,255,255,.36),
+    inset -4px -4px 0 rgba(0,0,0,.16),
+    0 7px 16px rgba(0,0,0,.3);
+}
+.overhead::before{
+  content:"";
+  position:absolute;
+  left:12px;
+  right:12px;
+  bottom:3px;
+  height:3px;
+  border-radius:3px;
+  background:#56616f;
+}
+/* =====================================================
+   COIN
+===================================================== */
+.coin{
+  width:31px;
+  height:31px;
+  border-radius:50%;
+  background:
+    radial-gradient(
+      circle at 30% 25%,
+      white 0 4%,
+      transparent 5%
+    ),
+    linear-gradient(
+      135deg,
+      var(--coin1),
+      var(--coin2)
+    );
+  border:3px solid #ffc82b;
+  box-shadow:
+    0 0 16px rgba(255,214,50,.65),
+    inset 2px 2px 4px rgba(255,255,255,.48);
+  animation:
+    spinCoin .8s linear infinite;
+}
+.coin::after{
+  content:"$";
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#996500;
+  font-weight:900;
+  font-size:15px;
+}
+@keyframes spinCoin{
+  0%{
+    transform:
+      translateX(-50%)
+      rotateY(0deg);
+  }
+  50%{
+    transform:
+      translateX(-50%)
+      rotateY(90deg);
+  }
+  100%{
+    transform:
+      translateX(-50%)
+      rotateY(180deg);
+  }
+}
+/* =====================================================
+   OYUNCU
+===================================================== */
+#player{
+  position:absolute;
+  left:50%;
+  bottom:13%;
+  width:56px;
+  height:96px;
+  transform:
+    translateX(-50%);
+  transform-origin:
+    center bottom;
+  z-index:50;
+  filter:
+    drop-shadow(
+      0 8px 5px rgba(0,0,0,.4)
+    );
+  transition:
+    left .12s ease,
+    height .12s ease,
+    transform .12s ease;
+}
+.head{
+  position:absolute;
+  left:13px;
+  top:0;
+  width:30px;
+  height:30px;
+  border-radius:50%;
+  background:
+    linear-gradient(
+      145deg,
+      #ffdabe,
+      #d78961
+    );
+  border:
+    2px solid rgba(0,0,0,.18);
+  z-index:5;
+}
+.hair{
+  position:absolute;
+  left:8px;
+  top:-3px;
+  width:40px;
+  height:18px;
+  border-radius:
+    20px 20px 7px 7px;
+  background:
+    linear-gradient(
+      145deg,
+      #302b35,
+      #101116
+    );
+  z-index:7;
+}
+.eye{
+  position:absolute;
+  top:13px;
+  width:4px;
+  height:4px;
+  border-radius:50%;
+  background:#202530;
+}
+.eye.a{left:20px}
+.eye.b{left:31px}
+.body{
+  position:absolute;
+  left:8px;
+  top:29px;
+  width:40px;
+  height:44px;
+  border-radius:
+    11px 11px 8px 8px;
+  background:
+    linear-gradient(
+      145deg,
+      var(--shirt1),
+      var(--shirt2)
+    );
+  border:
+    2px solid rgba(0,0,0,.2);
+  box-shadow:
+    inset 4px 3px 0 rgba(255,255,255,.15),
+    inset -4px -5px 0 rgba(0,0,0,.12);
+  transition:background .7s ease;
+}
+.body::after{
+  content:"";
+  position:absolute;
+  left:17px;
+  top:8px;
+  width:6px;
+  height:23px;
+  border-radius:5px;
+  background:
+    rgba(255,255,255,.12);
+}
+.arm{
+  position:absolute;
+  top:33px;
+  width:10px;
+  height:36px;
+  border-radius:8px;
+  background:#efa77d;
+}
+.arm.left{
+  left:0;
+  transform:rotate(11deg);
+}
+.arm.right{
+  right:0;
+  transform:rotate(-11deg);
+}
+.leg{
+  position:absolute;
+  top:71px;
+  width:14px;
+  height:28px;
+  border-radius:7px;
+  background:
+    linear-gradient(
+      #252e3c,
+      #101720
+    );
+}
+.leg.left{left:11px}
+.leg.right{right:11px}
+/* =====================================================
+   ZIPLAMA
+===================================================== */
+.jumpAnim{
+  animation:
+    playerJump .55s cubic-bezier(.2,.8,.2,1);
+}
+@keyframes playerJump{
+  0%{
+    bottom:13%;
+  }
+  45%{
+    bottom:34%;
+  }
+  100%{
+    bottom:13%;
+  }
+}
+/* =====================================================
+   EĞİLME
+===================================================== */
+.ducking{
+  height:68px !important;
+  transform:
+    translateX(-50%)
+    scaleY(.90);
+  transform-origin:
+    center bottom;
+}
+/* =====================================================
+   HUD
+===================================================== */
+#hud{
+  position:absolute;
+  top:14px;
+  left:14px;
+  right:14px;
+  z-index:100;
+  display:none;
+  justify-content:space-between;
+  align-items:flex-start;
+}
+.hudLeft{
+  display:flex;
+  gap:8px;
+}
+.hudBox{
+  padding:8px 12px;
+  border-radius:12px;
+  background:
+    rgba(7,12,20,.68);
+  border:1px solid rgba(255,255,255,.14);
+  backdrop-filter:blur(8px);
+  font-weight:800;
+  text-shadow:
+    0 2px 4px #000;
+}
+#pause{
+  width:45px;
+  height:42px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.14);
+  background:
+    rgba(7,12,20,.72);
+  color:white;
+}
+/* =====================================================
+   ALT TEMA ÇUBUĞU
+===================================================== */
+#themeBar{
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:0;
+  z-index:150;
+  display:none;
+  gap:7px;
+  padding:
+    8px 8px
+    calc(8px + env(safe-area-inset-bottom));
+  overflow-x:auto;
+  background:
+    rgba(5,10,17,.76);
+  backdrop-filter:
+    blur(10px);
+  border-top:
+    1px solid rgba(255,255,255,.12);
+  scrollbar-width:none;
+}
+#themeBar::-webkit-scrollbar{
+  display:none;
+}
+.themeBtn{
+  flex:0 0 auto;
+  min-width:108px;
+  height:39px;
+  border-radius:12px;
+  border:
+    1px solid rgba(255,255,255,.14);
+  background:
+    rgba(255,255,255,.08);
+  color:white;
+  font-size:11px;
+  font-weight:800;
+  white-space:nowrap;
+}
+.themeBtn.active{
+  background:
+    linear-gradient(
+      135deg,
+      #4eafff,
+      #2865d7
+    );
+  border-color:
+    rgba(255,255,255,.38);
+}
+.themeBtn:active{
+  transform:scale(.96);
+}
+/* =====================================================
+   KONTROLLER
+===================================================== */
+#controls{
+  position:absolute;
+  left:0;
+  right:0;
+  /*
+    Tema çubuğunun üstünde
+  */
+  bottom:59px;
+  z-index:120;
+  display:none;
+  justify-content:center;
+  gap:9px;
+}
+.control{
+  width:67px;
+  height:54px;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.14);
+  background:
+    rgba(10,17,29,.83);
+  color:white;
+  font-size:21px;
+  font-weight:900;
+  box-shadow:
+    0 6px 16px rgba(0,0,0,.25);
+}
+.control:active{
+  transform:scale(.94);
+}
+/* =====================================================
+   GAME OVER / PAUSE
+===================================================== */
+.overlay{
+  position:absolute;
+  inset:0;
+  z-index:300;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  text-align:center;
+  color:white;
+  background:
+    rgba(2,5,10,.77);
+  backdrop-filter:
+    blur(4px);
+}
+.overlay h2{
+  margin:0 0 8px;
+  font-size:41px;
+}
+.overlay p{
+  margin:4px 0;
+  opacity:.85;
+}
+.overlayBtn{
+  width:175px;
+  height:50px;
+  margin-top:13px;
+  border:0;
+  border-radius:15px;
+  background:
+    linear-gradient(
+      135deg,
+      #58b3ff,
+      #2769da
+    );
+  color:white;
+  font-weight:800;
+}
+/* =====================================================
+   TEST HITBOX
+   SADECE TEST MODUNDA GÖRÜNÜR
+===================================================== */
+.hitbox{
+  display:none;
+  position:absolute;
+  border:2px dashed #ff304f;
+  background:
+    rgba(255,40,70,.12);
+  pointer-events:none;
+  z-index:9999;
+}
+#game.testMode .hitbox{
+  display:block;
+}
+.playerHitboxDebug{
+  display:none;
+  position:absolute;
+  border:2px dashed #00ff88;
+  background:
+    rgba(0,255,130,.07);
+  pointer-events:none;
+  z-index:99999;
+}
+#game.testMode .playerHitboxDebug{
+  display:block;
+}
+/* =====================================================
+   TEMALAR
+   KAMERA DEĞİŞMEZ
+===================================================== */
+.theme-night{
+  --sky1:#071126;
+  --sky2:#1d3958;
+  --sky3:#04070d;
+  --road1:#313844;
+  --road2:#202630;
+  --edge:#55657b;
+  --lane:rgba(120,190,255,.35);
+  --building:#060a12;
+}
+.theme-sunset{
+  --sky1:#ffad72;
+  --sky2:#dd5b74;
+  --sky3:#30213e;
+  --road1:#44414b;
+  --road2:#2b2831;
+  --edge:#75636d;
+  --lane:rgba(255,226,205,.40);
+  --building:#211827;
+}
+.theme-city{
+  --sky1:#607688;
+  --sky2:#a2afb8;
+  --sky3:#303941;
+  --road1:#424850;
+  --road2:#2b3038;
+  --edge:#6b7480;
+  --lane:rgba(255,255,255,.40);
+  --building:#252c34;
+}
+.theme-neon{
+  --sky1:#080419;
+  --sky2:#281451;
+  --sky3:#04030b;
+  --road1:#242437;
+  --road2:#12121f;
+  --edge:#66438a;
+  --lane:rgba(194,105,255,.72);
+  --danger1:#ff3c8b;
+  --danger2:#8218b1;
+  --jump1:#37ecff;
+  --jump2:#285cff;
+  --shirt1:#788dff;
+  --shirt2:#5431ca;
+  --building:#090513;
+}
+.theme-neon #road{
+  box-shadow:
+    inset 0 0 70px rgba(180,70,255,.14),
+    0 0 24px rgba(160,70,255,.12);
+}
+.theme-neon .laneLine{
+  box-shadow:
+    0 0 11px rgba(180,80,255,.8);
+}
+.theme-neon .jump{
+  box-shadow:
+    0 0 18px rgba(40,220,255,.75),
+    inset 3px 2px 0 rgba(255,255,255,.22);
+}
+.theme-snow{
+  --sky1:#8eafc5;
+  --sky2:#dbeaf1;
+  --sky3:#60788b;
+  --road1:#555f67;
+  --road2:#3d444c;
+  --edge:#d8e4e9;
+  --lane:rgba(255,255,255,.70);
+  --building:#3e505e;
+}
+.theme-snow #sky{
+  background:
+    radial-gradient(circle at 18% 20%,#fff 0 1px,transparent 2px),
+    radial-gradient(circle at 70% 15%,#fff 0 1px,transparent 2px),
+    radial-gradient(circle at 54% 34%,rgba(255,255,255,.8) 0 1px,transparent 2px),
+    linear-gradient(
+      var(--sky1),
+      var(--sky2) 56%,
+      var(--sky3)
+    );
+}
+.theme-forest{
+  --sky1:#123f3a;
+  --sky2:#3a755e;
+  --sky3:#0a251f;
+  --road1:#39483f;
+  --road2:#26332d;
+  --edge:#52665b;
+  --lane:rgba(220,250,225,.35);
+  --building:#10251e;
+}
+.theme-volcano{
+  --sky1:#230505;
+  --sky2:#711b10;
+  --sky3:#0d0202;
+  --road1:#36292b;
+  --road2:#1e1517;
+  --edge:#70453c;
+  --lane:rgba(255,180,90,.38);
+  --building:#150505;
+  --danger1:#ff6335;
+  --danger2:#991707;
+}
+.theme-volcano #road{
+  box-shadow:
+    inset 0 0 70px rgba(255,55,10,.13);
+}
+.theme-space{
+  --sky1:#040418;
+  --sky2:#15114a;
+  --sky3:#020208;
+  --road1:#25283a;
+  --road2:#151725;
+  --edge:#505a83;
+  --lane:rgba(105,220,255,.52);
+  --building:#070712;
+  --danger1:#ff4d9b;
+  --danger2:#751dc2;
+  --jump1:#43e8ff;
+  --jump2:#315bff;
+}
+.theme-space #sky{
+  background:
+    radial-gradient(circle at 15% 19%,white 0 1px,transparent 2px),
+    radial-gradient(circle at 79% 14%,white 0 1px,transparent 2px),
+    radial-gradient(circle at 60% 35%,rgba(255,255,255,.8) 0 1px,transparent 2px),
+    radial-gradient(circle at 30% 43%,rgba(120,190,255,.8) 0 1px,transparent 2px),
+    linear-gradient(
+      var(--sky1),
+      var(--sky2) 56%,
+      var(--sky3)
+    );
+}
+/* =====================================================
+   MOBİL
+===================================================== */
+@media(max-width:600px){
+  #road{
+    width:100vw;
+  }
+  .block{
+    width:61px;
+    height:64px;
+  }
+  .jump{
+    width:68px;
+    height:9px;
+  }
+  #controls{
+    bottom:59px;
+  }
+  #player{
+    bottom:14%;
+  }
+  .logoBig{
+    font-size:46px;
+  }
+  .themeBtn{
+    min-width:100px;
+  }
+}
+</style>
+</head>
+<body>
+<div id="game" class="theme-night">
+  <!-- MENÜ -->
+  <div id="menu">
+    <div class="logo">
+      <div class="logoSmall">METRO</div>
+      <div class="logoBig">DASH</div>
+      <div class="logoVer">3D • V.4</div>
+    </div>
+    <div id="menuButtons">
+      <button
+        class="menuBtn play"
+        id="playButton">
+        ▶ OYUNA BAŞLA
+      </button>
+    </div>
+    <div class="menuHint">
+      ← → Hareket • ↑ Zıpla • ↓ Eğil
+    </div>
+  </div>
+  <!-- OYUN -->
+  <div id="scene">
+    <div id="sky"></div>
+    <div id="city">
+      <div class="building b1"></div>
+      <div class="building b2"></div>
+      <div class="building b3"></div>
+      <div class="building b4"></div>
+      <div class="building b5"></div>
+      <div class="building b6"></div>
+      <div class="building b7"></div>
+      <div class="building b8"></div>
+      <div class="building b9"></div>
+      <div class="building b10"></div>
+    </div>
+    <div id="world">
+      <div id="road">
+        <div class="laneLine one"></div>
+        <div class="laneLine two"></div>
+      </div>
+      <div id="objects"></div>
+      <!-- Oyuncu -->
+      <div id="player">
+        <div class="hair"></div>
+        <div class="head">
+          <span class="eye a"></span>
+          <span class="eye b"></span>
+        </div>
+        <div class="body"></div>
+        <div class="arm left"></div>
+        <div class="arm right"></div>
+        <div class="leg left"></div>
+        <div class="leg right"></div>
+        <!-- oyuncu hitbox debug -->
+        <div
+          class="playerHitboxDebug"
+          id="playerDebug">
+        </div>
+      </div>
+    </div>
+    <!-- HUD -->
+    <div id="hud">
+      <div class="hudLeft">
+        <div class="hudBox">
+          ⭐ <span id="score">0</span>
+        </div>
+        <div class="hudBox">
+          🪙 <span id="coins">0</span>
+        </div>
+      </div>
+      <button id="pause">
+        Ⅱ
+      </button>
+    </div>
+    <!-- KONTROLLER -->
+    <div id="controls">
+      <button class="control" id="leftButton">
+        ◀
+      </button>
+      <button class="control" id="duckButton">
+        ▼
+      </button>
+      <button class="control" id="jumpButton">
+        ▲
+      </button>
+      <button class="control" id="rightButton">
+        ▶
+      </button>
+    </div>
+    <!-- TEMA BUTONLARI -->
+    <div id="themeBar">
+      <button class="themeBtn" data-theme="theme-night">
+        🌙 Gece
+      </button>
+      <button class="themeBtn" data-theme="theme-sunset">
+        🌇 Gün Batımı
+      </button>
+      <button class="themeBtn" data-theme="theme-city">
+        🏙️ Modern Şehir
+      </button>
+      <button class="themeBtn" data-theme="theme-neon">
+        💜 Neon Şehir
+      </button>
+      <button class="themeBtn" data-theme="theme-snow">
+        ❄️ Karlı Gece
+      </button>
+      <button class="themeBtn" data-theme="theme-forest">
+        🌲 Orman
+      </button>
+      <button class="themeBtn" data-theme="theme-volcano">
+        🔥 Volkan
+      </button>
+      <button class="themeBtn" data-theme="theme-space">
+        🌌 Uzay
+      </button>
+    </div>
+    <!-- OYUN BİTTİ -->
+    <div class="overlay" id="gameOver">
+      <h2>OYUN BİTTİ</h2>
+      <p>
+        Skor:
+        <b id="finalScore">0</b>
+      </p>
+      <p>
+        Coin:
+        <b id="finalCoins">0</b>
+      </p>
+      <button class="overlayBtn" id="retryButton">
+        TEKRAR OYNA
+      </button>
+      <button class="overlayBtn" id="menuButton">
+        ANA MENÜ
+      </button>
+    </div>
+    <!-- DURAKLAT -->
+    <div class="overlay" id="pauseOverlay">
+      <h2>DURAKLATILDI</h2>
+      <button class="overlayBtn" id="resumeButton">
+        DEVAM ET
+      </button>
+      <button class="overlayBtn" id="pauseMenuButton">
+        ANA MENÜ
+      </button>
+    </div>
+  </div>
+</div>
+<script>
+"use strict";
+/* =====================================================
+   ELEMENTLER
+===================================================== */
+const game =
+  document.getElementById("game");
+const menu =
+  document.getElementById("menu");
+const scene =
+  document.getElementById("scene");
+const objects =
+  document.getElementById("objects");
+const player =
+  document.getElementById("player");
+const playerDebug =
+  document.getElementById("playerDebug");
+const hud =
+  document.getElementById("hud");
+const controls =
+  document.getElementById("controls");
+const themeBar =
+  document.getElementById("themeBar");
+const scoreEl =
+  document.getElementById("score");
+const coinsEl =
+  document.getElementById("coins");
+const finalScore =
+  document.getElementById("finalScore");
+const finalCoins =
+  document.getElementById("finalCoins");
+const gameOver =
+  document.getElementById("gameOver");
+const pauseOverlay =
+  document.getElementById("pauseOverlay");
+/* =====================================================
+   OYUN DURUMU
+===================================================== */
+let lane = 1;
+let score = 0;
+let coins = 0;
+let running = false;
+let paused = false;
+let jumping = false;
+let ducking = false;
+let spawnTimer = 0;
+let lastTime = 0;
+let shiftDownAt = 0;
+let testMode = false;
+let themeIndex = 0;
+/* =====================================================
+   ŞERİTLER
+===================================================== */
+const lanePositions = [
+  "33.333%",
+  "50%",
+  "66.666%"
+];
+/* =====================================================
+   TEMALAR
+===================================================== */
+const themeClasses = [
+  "theme-night",
+  "theme-sunset",
+  "theme-city",
+  "theme-neon",
+  "theme-snow",
+  "theme-forest",
+  "theme-volcano",
+  "theme-space"
+];
+function setTheme(className){
+  themeClasses.forEach(cls=>{
+    game.classList.remove(cls);
+  });
+  game.classList.add(className);
+  document
+    .querySelectorAll(".themeBtn")
+    .forEach(btn=>{
+      btn.classList.toggle(
+        "active",
+        btn.dataset.theme === className
+      );
+    });
+  try{
+    localStorage.setItem(
+      "metroDashTheme",
+      className
+    );
+  }catch(e){}
+}
+/* kayıtlı tema */
+try{
+  const saved =
+    localStorage.getItem(
+      "metroDashTheme"
+    );
+  if(
+    themeClasses.includes(saved)
+  ){
+    setTheme(saved);
+  }else{
+    setTheme("theme-night");
+  }
+}catch(e){
+  setTheme("theme-night");
+}
+/* tema butonları */
+document
+  .querySelectorAll(".themeBtn")
+  .forEach(btn=>{
+    btn.addEventListener(
+      "click",
+      ()=>{
+        setTheme(
+          btn.dataset.theme
+        );
+      }
+    );
+  });
+/* =====================================================
+   ŞERİT KONUMU
+===================================================== */
+function setLane(){
+  player.style.left =
+    lanePositions[lane];
+}
+/* =====================================================
+   MENÜ / OYUN
+===================================================== */
+function startGame(){
+  menu.style.display =
+    "none";
+  scene.style.display =
+    "block";
+  hud.style.display =
+    "flex";
+  controls.style.display =
+    "flex";
+  themeBar.style.display =
+    "flex";
+  gameOver.style.display =
+    "none";
+  pauseOverlay.style.display =
+    "none";
+  objects.innerHTML =
+    "";
+  lane = 1;
+  score = 0;
+  coins = 0;
+  running = true;
+  paused = false;
+  jumping = false;
+  ducking = false;
+  spawnTimer = 0;
+  lastTime = 0;
+  scoreEl.textContent =
+    "0";
+  coinsEl.textContent =
+    "0";
+  player.classList.remove(
+    "jumpAnim",
+    "ducking"
+  );
+  setLane();
+  requestAnimationFrame(
+    gameLoop
+  );
+}
+function showMenu(){
+  running = false;
+  paused = false;
+  scene.style.display =
+    "none";
+  hud.style.display =
+    "none";
+  controls.style.display =
+    "none";
+  themeBar.style.display =
+    "none";
+  gameOver.style.display =
+    "none";
+  pauseOverlay.style.display =
+    "none";
+  menu.style.display =
+    "flex";
+}
+/* =====================================================
+   HAREKET
+===================================================== */
+function moveLeft(){
+  if(
+    !running ||
+    paused
+  ){
+    return;
+  }
+  if(lane > 0){
+    lane--;
+    setLane();
+  }
+}
+function moveRight(){
+  if(
+    !running ||
+    paused
+  ){
+    return;
+  }
+  if(lane < 2){
+    lane++;
+    setLane();
+  }
+}
+/* =====================================================
+   ZIPLAMA
+===================================================== */
+function jump(){
+  if(
+    !running ||
+    paused ||
+    jumping ||
+    ducking
+  ){
+    return;
+  }
+  jumping = true;
+  player.classList.remove(
+    "jumpAnim"
+  );
+  void player.offsetWidth;
+  player.classList.add(
+    "jumpAnim"
+  );
+  setTimeout(()=>{
+    player.classList.remove(
+      "jumpAnim"
+    );
+    jumping = false;
+  },550);
+}
+/* =====================================================
+   EĞİLME
+===================================================== */
+function startDuck(){
+  if(
+    !running ||
+    paused ||
+    jumping
+  ){
+    return;
+  }
+  ducking = true;
+  player.classList.add(
+    "ducking"
+  );
+}
+function stopDuck(){
+  ducking = false;
+  player.classList.remove(
+    "ducking"
+  );
+}
+/* =====================================================
+   NESNE OLUŞTUR
+===================================================== */
+function spawnObject(){
+  const r =
+    Math.random();
+  let type;
+  if(r < .21){
+    type = "coin";
+  }else if(r < .41){
+    type = "jump";
+  }else if(r < .56){
+    type = "overhead";
+  }else{
+    type = "block";
+  }
+  const el =
+    document.createElement(
+      "div"
+    );
+  el.className =
+    "object " + type;
+  const objectLane =
+    Math.floor(
+      Math.random() * 3
+    );
+  el.dataset.lane =
+    String(objectLane);
+  /*
+    Uzaktaki başlangıç.
+  */
+  el.dataset.progress =
+    "0";
+  el.style.left =
+    lanePositions[objectLane];
+  el.style.bottom =
+    "105%";
+  /*
+    Görsel hitbox.
+    Gerçek hitbox aşağıda
+    ayrıca hesaplanıyor.
+  */
+  const hb =
+    document.createElement(
+      "div"
+    );
+  hb.className =
+    "hitbox";
+  el.appendChild(hb);
+  objects.appendChild(el);
+}
+/* =====================================================
+   NESNE GÖRÜNÜMÜ
+===================================================== */
+function renderObject(el){
+  let p =
+    Number(
+      el.dataset.progress
+    );
+  p =
+    Math.max(
+      0,
+      Math.min(
+        p,
+        1.05
+      )
+    );
+  /*
+    Eski 3D kamera mantığı:
+    uzak küçük,
+    yakın büyük.
+  */
+  const scale =
+    .28 + p * 1.15;
+  const bottom =
+    105 - p * 92;
+  el.style.bottom =
+    bottom + "%";
+  el.style.transform =
+    "translateX(-50%) scale(" +
+    scale +
+    ")";
+  el.style.opacity =
+    String(
+      .26 + p * .74
+    );
+}
+/* =====================================================
+   OYUNCU HITBOX
+===================================================== */
+function getPlayerHitbox(){
+  const r =
+    player.getBoundingClientRect();
+  let box;
+  if(ducking){
+    box = {
+      left:r.left + 13,
+      right:r.right - 13,
+      top:r.top + 28,
+      bottom:r.bottom - 4
+    };
+  }else{
+    box = {
+      left:r.left + 13,
+      right:r.right - 13,
+      top:r.top + 8,
+      bottom:r.bottom - 4
+    };
+  }
+  /*
+    Test modundaki yeşil hitbox.
+  */
+  playerDebug.style.left =
+    (box.left - r.left) + "px";
+  playerDebug.style.top =
+    (box.top - r.top) + "px";
+  playerDebug.style.width =
+    (box.right - box.left) + "px";
+  playerDebug.style.height =
+    (box.bottom - box.top) + "px";
+  return box;
+}
+/* =====================================================
+   NESNE HITBOX
+===================================================== */
+function getObjectHitbox(el){
+  const r =
+    el.getBoundingClientRect();
+  let box;
+  /*
+    COIN
+  */
+  if(
+    el.classList.contains(
+      "coin"
+    )
+  ){
+    box = {
+      left:r.left + 4,
+      right:r.right - 4,
+      top:r.top + 4,
+      bottom:r.bottom - 4
+    };
+  }
+  /*
+    MAVİ ENGEL
+    Görsel 9px kalın,
+    hitbox da 9px'e yakın.
+  */
+  else if(
+    el.classList.contains(
+      "jump"
+    )
+  ){
+    box = {
+      left:r.left + 5,
+      right:r.right - 5,
+      top:r.top + 1,
+      bottom:r.bottom - 1
+    };
+  }
+  /*
+    EĞİLME ENGELİ
+  */
+  else if(
+    el.classList.contains(
+      "overhead"
+    )
+  ){
+    box = {
+      left:r.left + 7,
+      right:r.right - 7,
+      top:r.top + 2,
+      bottom:r.bottom - 2
+    };
+  }
+  /*
+    KIRMIZI ENGEL
+  */
+  else{
+    box = {
+      left:r.left + 7,
+      right:r.right - 7,
+      top:r.top + 6,
+      bottom:r.bottom - 5
+    };
+  }
+  /*
+    Hitbox debug kutusunu
+    nesnenin içine yerleştir.
+    Nesne içinde transform olduğu için
+    yüzde/piksel yaklaşımı kullanılıyor.
+  */
+  const debug =
+    el.querySelector(
+      ".hitbox"
+    );
+  if(debug){
+    debug.style.left =
+      ((box.left-r.left) /
+      r.width * 100) + "%";
+    debug.style.top =
+      ((box.top-r.top) /
+      r.height * 100) + "%";
+    debug.style.width =
+      ((box.right-box.left) /
+      r.width * 100) + "%";
+    debug.style.height =
+      ((box.bottom-box.top) /
+      r.height * 100) + "%";
+  }
+  return box;
+}
+/* =====================================================
+   ÇAKIŞMA
+===================================================== */
+function overlaps(a,b){
+  return (
+    a.left < b.right &&
+    a.right > b.left &&
+    a.top < b.bottom &&
+    a.bottom > b.top
+  );
+}
+/* =====================================================
+   ÇARPIŞMA
+===================================================== */
+function checkCollision(el){
+  if(
+    Number(el.dataset.lane) !== lane
+  ){
+    return false;
+  }
+  /*
+    Uzaktaki nesneler
+    henüz çarpışma alanında değil.
+  */
+  if(
+    Number(
+      el.dataset.progress
+    ) < .70
+  ){
+    return false;
+  }
+  /*
+    Mavi engel:
+    oyuncu gerçekten yerdeyse
+    çarpabilir.
+  */
+  return overlaps(
+    getPlayerHitbox(),
+    getObjectHitbox(el)
+  );
+}
+/* =====================================================
+   OYUN DÖNGÜSÜ
+===================================================== */
+function gameLoop(time){
+  if(!running){
+    return;
+  }
+  if(!lastTime){
+    lastTime = time;
+  }
+  const dt =
+    Math.min(
+      (time-lastTime) /
+      16.6667,
+      2
+    );
+  lastTime =
+    time;
+  if(!paused){
+    spawnTimer += dt;
+    /*
+      Başlangıçta daha rahat.
+      Sonra yavaşça yoğunlaşır.
+    */
+    const spawnDelay =
+      Math.max(
+        30,
+        54 - score * .035
+      );
+    if(
+      spawnTimer >= spawnDelay
+    ){
+      spawnObject();
+      spawnTimer = 0;
+    }
+    const list =
+      Array.from(
+        objects.children
+      );
+    list.forEach(el=>{
+      let progress =
+        Number(
+          el.dataset.progress
+        );
+      if(
+        !Number.isFinite(
+          progress
+        )
+      ){
+        progress = 0;
+      }
+      /*
+        İlerleme.
+      */
+      progress +=
+        .012 * dt;
+      el.dataset.progress =
+        String(progress);
+      renderObject(el);
+      /*
+        Coin.
+      */
+      if(
+        el.classList.contains(
+          "coin"
+        ) &&
+        checkCollision(el)
+      ){
+        coins++;
+        coinsEl.textContent =
+          String(coins);
+        el.remove();
+        return;
+      }
+      /*
+        Mavi zıplama engeli.
+      */
+      if(
+        el.classList.contains(
+          "jump"
+        ) &&
+        checkCollision(el)
+      ){
+        if(!jumping){
+          endGame();
+          return;
+        }
+      }
+      /*
+        Eğilme engeli.
+      */
+      if(
+        el.classList.contains(
+          "overhead"
+        ) &&
+        checkCollision(el)
+      ){
+        if(!ducking){
+          endGame();
+          return;
+        }
+      }
+      /*
+        Kırmızı engel.
+      */
+      if(
+        el.classList.contains(
+          "block"
+        ) &&
+        checkCollision(el)
+      ){
+        endGame();
+        return;
+      }
+      /*
+        Nesneyi geçtik.
+      */
+      if(
+        progress >= 1.03
+      ){
+        if(
+          !el.classList.contains(
+            "coin"
+          )
+        ){
+          score++;
+          scoreEl.textContent =
+            String(score);
+        }
+        el.remove();
+        return;
+      }
+      /*
+        Güvenlik temizliği.
+      */
+      if(
+        progress > 1.20
+      ){
+        el.remove();
+      }
+    });
+  }
+  requestAnimationFrame(
+    gameLoop
+  );
+}
+/* =====================================================
+   GAME OVER
+===================================================== */
+function endGame(){
+  if(!running){
+    return;
+  }
+  running = false;
+  stopDuck();
+  finalScore.textContent =
+    String(score);
+  finalCoins.textContent =
+    String(coins);
+  gameOver.style.display =
+    "flex";
+}
+/* =====================================================
+   DURAKLAT
+===================================================== */
+function pauseGame(){
+  if(!running){
+    return;
+  }
+  paused = true;
+  pauseOverlay.style.display =
+    "flex";
+}
+function resumeGame(){
+  paused = false;
+  pauseOverlay.style.display =
+    "none";
+  lastTime = 0;
+}
+/* =====================================================
+   TEST MODU
+   SHIFT = 5 SANİYE
+===================================================== */
+document.addEventListener(
+  "keydown",
+  e=>{
+    if(
+      e.key === "Shift" &&
+      !e.repeat &&
+      shiftDownAt === 0
+    ){
+      shiftDownAt =
+        performance.now();
+      setTimeout(()=>{
+        /*
+          Shift hâlâ basılıysa
+          5 saniye tamamlandı.
+        */
+        if(
+          shiftDownAt !== 0 &&
+          performance.now() -
+          shiftDownAt >= 5000
+        ){
+          testMode =
+            !testMode;
+          game.classList.toggle(
+            "testMode",
+            testMode
+          );
+        }
+      },5000);
+    }
+  }
+);
+document.addEventListener(
+  "keyup",
+  e=>{
+    if(
+      e.key === "Shift"
+    ){
+      shiftDownAt = 0;
+    }
+  }
+);
+/* =====================================================
+   KLAVYE
+===================================================== */
+document.addEventListener(
+  "keydown",
+  e=>{
+    const key =
+      e.key.toLowerCase();
+    if(
+      key === "arrowleft" ||
+      key === "a"
+    ){
+      e.preventDefault();
+      moveLeft();
+    }
+    if(
+      key === "arrowright" ||
+      key === "d"
+    ){
+      e.preventDefault();
+      moveRight();
+    }
+    if(
+      key === "arrowup" ||
+      key === "w" ||
+      key === " "
+    ){
+      e.preventDefault();
+      jump();
+    }
+    if(
+      key === "arrowdown" ||
+      key === "s"
+    ){
+      e.preventDefault();
+      startDuck();
+    }
+    if(
+      key === "escape"
+    ){
+      if(paused){
+        resumeGame();
+      }else{
+        pauseGame();
+      }
+    }
+  }
+);
+document.addEventListener(
+  "keyup",
+  e=>{
+    const key =
+      e.key.toLowerCase();
+    if(
+      key === "arrowdown" ||
+      key === "s"
+    ){
+      stopDuck();
+    }
+  }
+);
+/* =====================================================
+   DOKUNMATİK
+===================================================== */
+function bindPress(
+  id,
+  action
+){
+  const btn =
+    document.getElementById(id);
+  btn.addEventListener(
+    "pointerdown",
+    e=>{
+      e.preventDefault();
+      action();
+    }
+  );
+}
+bindPress(
+  "leftButton",
+  moveLeft
+);
+bindPress(
+  "rightButton",
+  moveRight
+);
+bindPress(
+  "jumpButton",
+  jump
+);
+/* =====================================================
+   DOKUNMATİK EĞİLME
+===================================================== */
+const duckButton =
+  document.getElementById(
+    "duckButton"
+  );
+duckButton.addEventListener(
+  "pointerdown",
+  e=>{
+    e.preventDefault();
+    duckButton.setPointerCapture(
+      e.pointerId
+    );
+    startDuck();
+  }
+);
+duckButton.addEventListener(
+  "pointerup",
+  e=>{
+    e.preventDefault();
+    stopDuck();
+  }
+);
+duckButton.addEventListener(
+  "pointercancel",
+  stopDuck
+);
+duckButton.addEventListener(
+  "lostpointercapture",
+  stopDuck
+);
+/* =====================================================
+   BUTONLAR
+===================================================== */
+document
+  .getElementById("playButton")
+  .addEventListener(
+    "click",
+    startGame
+  );
+document
+  .getElementById("retryButton")
+  .addEventListener(
+    "click",
+    startGame
+  );
+document
+  .getElementById("menuButton")
+  .addEventListener(
+    "click",
+    showMenu
+  );
+document
+  .getElementById("pauseMenuButton")
+  .addEventListener(
+    "click",
+    showMenu
+  );
+document
+  .getElementById("pauseButton")
+  .addEventListener(
+    "click",
+    pauseGame
+  );
+document
+  .getElementById("resumeButton")
+  .addEventListener(
+    "click",
+    resumeGame
+  );
+/* =====================================================
+   PWA
+===================================================== */
+if(
+  "serviceWorker" in navigator
+){
+  window.addEventListener(
+    "load",
+    ()=>{
+      navigator.serviceWorker
+        .register("./sw.js")
+        .catch(err=>{
+          console.warn(
+            "Service Worker:",
+            err
+          );
+        });
+    }
+  );
+}
+/* =====================================================
+   BAŞLANGIÇ
+===================================================== */
+setLane();
+</script>
+</body>
+</html>
