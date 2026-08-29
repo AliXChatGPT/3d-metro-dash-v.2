@@ -1,0 +1,20 @@
+{
+  "name": "3D Metro Dash V.2",
+  "short_name": "3D Metro Dash",
+  "description": "3D Metro Dash V.2",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#080b12",
+  "theme_color": "#287cff",
+  "lang": "tr",
+  "icons": [
+    {
+      "src": "./ChatGPT Image 28 Ağu 2026 20_25_46.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
